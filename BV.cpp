@@ -1,24 +1,33 @@
 #include "BV.h"
-/*
-class BV
-{
-    static uint64 block_size;
-    static uint64 chunk_size;
-    static uint64 block_bits;
-    static uint64 chunk_bits;
-public:
-    explicit BV(char* array, uint64 length);
-    explicit BV(std::vector<char> const& array);
-    ~BV();
-    uint64 rank_size();
-    //uint64 select_size();
-private:
-    char* array;
-    uint64 N;
-    uint64 B;
-};*/
 
-explicit BV::BV(std::string const& filename)
+const uint64 BV::rank_table[] = {
+    0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4,
+    1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5,
+    1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5,
+    2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6,
+    1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5,
+    2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6,
+    2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6,
+    3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7,
+    1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5,
+    2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6,
+    2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6,
+    3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7,
+    2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6,
+    3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7,
+    3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7,
+    4, 5, 5, 6, 5, 6, 6, 7, 5, 6, 6, 7, 6, 7, 7, 8
+};
+
+BV::BV(size_t size)
+    : rank_enabled(false), select_enabled(false)
+{
+    array = new char[size];
+    N = (uint64)size;
+    B = 8 * N;
+}
+
+BV::BV(std::string const& filename)
     : rank_enabled(false), select_enabled(false)
 {
     std::ifstream ifs(filename, std::ios::binary);
@@ -30,7 +39,7 @@ explicit BV::BV(std::string const& filename)
     array = new char[size];
     ifs.read(array,size);
 
-    N = size;
+    N = (uint64)size;
     B = 8 * N;
 }
 
@@ -54,21 +63,21 @@ void BV::build_rank()
     block_rank = new PackedArray((B + BV::block_size - 1)/BV::block_size, BV::block_bits);
     chunk_rank = new PackedArray((B + BV::chunk_size - 1)/BV::chunk_size, BV::chunk_bits);
 
-    uint64 acc = 0;
+    uint64 acc_b = 0, acc_c;
     for (uint64 i = 0; i < num_block; i++)
     {
-        block_rank->set(i,acc);
+        block_rank->set(i,acc_b);
+        acc_c = 0;
         for (uint64 j = 0; j < num_chunk; j++)
         {
-            chunk_rank->set(i * BV::block_size / BV::chunk_size + j, acc);
-            for (uint64 k = 0; k < BV::byte_per_chunk)
+            chunk_rank->set(i * BV::block_size / BV::chunk_size + j, acc_c);
+            for (uint64 k = 0; k < BV::byte_per_chunk; k++)
             {
-                acc += popcount
+                acc_c += popcount(array[i*BV::byte_per_block+j*BV::byte_per_chunk+k]);
             }
         }
+        acc_b += acc_c;
     }
-
-
 
     rank_enabled = true;
 }
@@ -80,7 +89,17 @@ void BV::build_select()
 
 uint64 BV::rank(uint64 i)
 {
+    return block_rank->get(i/BV::block_size) + chunk_rank->get(i/BV::chunk_size) + rem_rank(i);
+}
 
+uint64 BV::rem_rank(uint64 i)
+{
+    uint64 res = 0;
+    for (uint64 j = (i/BV::chunk_size) * BV::byte_per_chunk + 1; j < (i>>3)-1; j++)
+    {
+        res += BV::rank_table[(*this)[j]];
+    }
+    return res + BV::rank_table[((*this)[(i>>3)] << (7 - (i%8)))];
 }
 
 uint64 BV::select(uint64 i)
@@ -108,4 +127,13 @@ uint64 BV::select_space()
 {
     //not yet implemented
     return 0;
+}
+
+void BV::report_detail()
+{
+    std::cout << "BV::report_detail()" << std::endl;
+    std::cout << "length: " << N << std::endl;
+    std::cout << "total_bits: " << B << std::endl;
+    std::cout << "first 4 chars: " << std::hex << (*this)[0] << (*this)[1] << (*this)[2] 
+     << (*this)[3] << std::endl;
 }

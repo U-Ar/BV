@@ -7,6 +7,8 @@
 
 int main() 
 {
+    std::cout << "-- PackedArrayTest starts --" << std::endl;
+
     PackedArray pa1(100,64);
     std::cout << "Test for n=100, bits=64" << std::endl;
     for (uint64 i = 0; i < 100; i++) {
@@ -70,6 +72,10 @@ int main()
         assert(pa4.get(i) == i%32);
     }
     std::cout << "Done" << std::endl << std::endl;
+
+
+
+    std::cout << "-- PackedArrayTest  ends  --" << std::endl;
 
     
 }

@@ -36,7 +36,7 @@ inline uint64 get_internal_bits(uint64& a, uint64 lb, uint64 rb)
 inline uint64 popcount(uint64 n)
 {
 #ifdef __GNUC__
-    return __builin_popcountll(n);
+    return __builtin_popcountll(n);
 #else 
     uint64 c = 0;
     for (; n; ++c)

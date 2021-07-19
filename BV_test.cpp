@@ -6,11 +6,14 @@
 
 int main() {
 
-    std::cout << "build BV from std::vector<char>" << std::endl;
-    std::vector<char> a1{0x10, 0x03, 0x87, 0x1f};
-    BV b1(a1);
+    std::cout << "-- BVTest starts --" << std::endl;
+    std::cout << "build BV from vector<uchar>" << std::endl;
+    BV b1(std::vector<uchar>{0x10, 0x03, 0x87, 0x1f});
+    b1.build_rank();
+    std::cout << "done" << std::endl;
 
-    std::cout << "try rank" << std::endl;
+    std::cout << "rank on BV{0x10, 0x03, 0x87, 0x1f}" << std::endl;
+    b1.report_detail();
 
     assert(b1.rank(0) == 0);
     assert(b1.rank(1) == 0);
@@ -44,33 +47,15 @@ int main() {
     assert(b1.rank(29) == 12);
     assert(b1.rank(30) == 12);
     assert(b1.rank(31) == 12);
-
-/*
-    std::cout << "try select" << std::endl;
-
-    assert(b1.select(0) == 0);
-    assert(b1.select(1) == 4);
-    assert(b1.select(2) == 8);
-    assert(b1.select(3) == 9);
-    assert(b1.select(4) == 16);
-    assert(b1.select(5) == 17);
-    assert(b1.select(6) == 18);
-    assert(b1.select(7) == 23);
-    assert(b1.select(8) == 24);
-    assert(b1.select(9) == 25);
-    assert(b1.select(10) == 26);
-    assert(b1.select(11) == 27);
-    assert(b1.select(12) == 28);
-    assert(b1.select(13) == std::numeric_limits<unsigned long>::max());
-    assert(b1.select(14) == std::numeric_limits<unsigned long>::max());*/
+    std::cout << "done" << std::endl;
 
 
+    std::cout << "build BV using BV(size) and operator[]" << std::endl;
+    BV b2((size_t)4);
+    b2[0] = 0x10; b2[1] = 0x03; b2[2] = 0x87; b2[3] = 0x1f;
+    b2.build_rank();
 
-    std::cout << "build BV from char array" << std::endl;
-    char[4] a2{0x10, 0x03, 0x87, 0x1f};
-    BV b2(a2, 4);
-
-    std::cout << "try rank" << std::endl;
+    std::cout << "rank on BV{0x10, 0x03, 0x87, 0x1f}" << std::endl;
 
     assert(b2.rank(0) == 0);
     assert(b2.rank(1) == 0);
@@ -105,6 +90,8 @@ int main() {
     assert(b2.rank(30) == 12);
     assert(b2.rank(31) == 12);
 
+    std::cout << "done" << std::endl;
+
 /*
     std::cout << "try select" << std::endl;
 
@@ -130,5 +117,5 @@ int main() {
 
 
 
-
+    std::cout << "-- BVTest  ends  --" << std::endl;
 }
