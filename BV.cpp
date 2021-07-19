@@ -60,8 +60,8 @@ void BV::build_rank()
     num_block = (B + BV::block_size - 1)/BV::block_size;
     num_chunk = (B + BV::chunk_size - 1)/BV::chunk_size;
 
-    block_rank = new PackedArray((B + BV::block_size - 1)/BV::block_size, BV::block_bits);
-    chunk_rank = new PackedArray((B + BV::chunk_size - 1)/BV::chunk_size, BV::chunk_bits);
+    block_rank = new PackedArray(num_block, BV::block_bits);
+    chunk_rank = new PackedArray(num_chunk, BV::chunk_bits);
 
     uint64 acc_b = 0, acc_c;
     for (uint64 i = 0; i < num_block; i++)
@@ -71,6 +71,7 @@ void BV::build_rank()
         for (uint64 j = 0; j < num_chunk; j++)
         {
             chunk_rank->set(i * BV::block_size / BV::chunk_size + j, acc_c);
+            if (i == num_block-1 && j == num_chunk-1) break;
             for (uint64 k = 0; k < BV::byte_per_chunk; k++)
             {
                 acc_c += popcount(array[i*BV::byte_per_block+j*BV::byte_per_chunk+k]);
@@ -95,11 +96,11 @@ uint64 BV::rank(uint64 i)
 uint64 BV::rem_rank(uint64 i)
 {
     uint64 res = 0;
-    for (uint64 j = (i/BV::chunk_size) * BV::byte_per_chunk + 1; j < (i>>3)-1; j++)
+    for (uint64 j = (i/BV::chunk_size) * BV::byte_per_chunk; j < ((i+8)>>3)-1; j++)
     {
         res += BV::rank_table[(*this)[j]];
     }
-    return res + BV::rank_table[((*this)[(i>>3)] << (7 - (i%8)))];
+    return res + BV::rank_table[(uchar)((*this)[(i>>3)] << (7 - (i%8)))];
 }
 
 uint64 BV::select(uint64 i)
@@ -134,6 +135,7 @@ void BV::report_detail()
     std::cout << "BV::report_detail()" << std::endl;
     std::cout << "length: " << N << std::endl;
     std::cout << "total_bits: " << B << std::endl;
-    std::cout << "first 4 chars: " << std::hex << (*this)[0] << (*this)[1] << (*this)[2] 
-     << (*this)[3] << std::endl;
+    std::cout << "first 4 chars: " << std::hex << +(*this)[0] << " " << +(*this)[1] << " " <<  +(*this)[2] 
+    << " " << +(*this)[3] << std::endl;
+    std::cout << "report_detail done" << std::endl;
 }

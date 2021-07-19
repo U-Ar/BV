@@ -41,16 +41,8 @@ public:
     BV(std::vector<uchar> const& il) : BV(il.size())
     {
         size_t idx = 0;
-        std::cout << il.size() << std::endl;
         for (; idx < il.size(); idx++)
         {
-            std::cout << "elem at " << idx << std::endl; 
-            std::cout << il[idx] << std::endl;
-        }
-        for (; idx < il.size(); idx++)
-        {
-            std::cout << "elem: " << std::endl; 
-            std::cout << il[idx] << std::endl;
             (*this)[idx] = il[idx];
         }
     }
