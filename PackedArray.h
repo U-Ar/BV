@@ -8,12 +8,15 @@ class PackedArray
 public:
     PackedArray(uint64 n_elems, uint64 n_bits);
     ~PackedArray();
+    // array[i] = val
     bool set(uint64 i, uint64 val);
+    // return array[i]
     uint64 get(uint64 i);
     bool set_bit(uint64 idx, uint64 pos, uint64 val);
     uint64 get_bit(uint64 idx, uint64 pos);
     bool _set(uint64 i, uint64 val);
     uint64 _get(uint64 i);
+    // used space
     inline uint64 space() { return total_bits; }
 private:
     uint64 size;
