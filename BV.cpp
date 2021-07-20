@@ -86,6 +86,53 @@ void BV::build_rank()
 
 void BV::build_select()
 {
+    O = 0;
+    for (size_t i = 0; i < N; i++) 
+    {
+        O += popcount((uchar)(*this)[i]);
+    }
+    num_area = (O + area_ones - 1) / area_ones;
+    area_rank = new (SelectBlock*)[num_area];
+    
+    uint64 left = 0, right = 0, idx = 0, ones = 0, pre_ones = 0;
+    for (size_t i = 0; i < N; i++) 
+    {
+        pre_ones = ones;
+        ones += popcount((uchar)(*this)[i]);
+        if (ones >= area_ones)
+        {
+            for (size_t j = 0; j < 8; j++)
+            {
+                if (((uchar)(*this)[i]) & (1 << j)) {
+                    pre_ones++;
+                    if (pre_ones == area_ones) {
+                        ones = popcount(((uchar)(*this)[i]) >> (j+1));
+                        right = i << 3 + j;
+                        if (right - left >= boundary_size)
+                        {
+                            area_rank[idx++] = new SparseBlock((*this),left,right,area_ones);
+                        } else 
+                        {
+                            area_rank[idx++] = new DenseBlock((*this),left,right,area_ones);
+                        }
+                        left = right + 1;
+                        break;
+                    }
+                }
+            }
+        }
+    }
+    if (ones > 0) {
+        right = B - 1;
+        if (right - left >= boundary_size)
+        {
+            area_rank[idx++] = new SparseBlock((*this),left,right,ones);
+        } else 
+        {
+            area_rank[idx++] = new DenseBlock((*this),left,right,ones);
+        }
+    }
+
     select_enabled = true;
 }
 
@@ -107,8 +154,7 @@ uint64 BV::rem_rank(uint64 i)
 
 uint64 BV::select(uint64 i)
 {
-    //not yet implemented
-    return 0;
+    return area_rank[(i-1)/area_ones]->select(i%area_ones);
 }
 
 uint64 BV::space()
