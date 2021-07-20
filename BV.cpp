@@ -22,9 +22,9 @@ const uint64 BV::rank_table[] = {
 BV::BV(size_t size)
     : rank_enabled(false), select_enabled(false)
 {
-    array = new uint64[size];
+    array = new char[size];
     N = (uint64)size;
-    B = 64 * N;
+    B = 8 * N;
 }
 
 BV::BV(std::string const& filename)
@@ -36,23 +36,11 @@ BV::BV(std::string const& filename)
     long long int size = ifs.tellg();
     ifs.seekg(0);
 
-    N = (uint64) (size + 7) / 8;
-    B = 64 * N;
-
-    array = new uint64[N];
-
+    array = new char[size];
     ifs.read(array,size);
-    uint64 i = 0;
-    char a, b, c, d, e, f, g, h;
-    while (!ifs.eof())
-    {
-        ifs >> a >> b >> c >> d >> e >> f >> g >> h;
-        array[i++] = (uint64) ( 
-            (uchar) a | ((uchar) b) << 8 | ((uchar) c) << 16 | ((uchar) d) << 24 |
-            ((uchar) e) << 32 | ((uchar) f) << 40 | ((uchar) g) << 48 | ((uchar) h) << 56
-        );
-    }
 
+    N = (uint64)size;
+    B = 8 * N;
 }
 
 BV::~BV()
@@ -85,9 +73,9 @@ void BV::build_rank()
             chunk_rank->set(i * BV::block_size / BV::chunk_size + j, acc_c);
 
             if (i == num_block-1 && j == num_chunk-1) break;
-            for (uint64 k = 0; k < BV::word_per_chunk; k++)
+            for (uint64 k = 0; k < BV::byte_per_chunk; k++)
             {
-                acc_c += popcount(array[i*BV::word_per_block+j*BV::word_per_chunk+k]);
+                acc_c += popcount(array[i*BV::byte_per_block+j*BV::byte_per_chunk+k]);
             }
         }
         acc_b += acc_c;
@@ -110,7 +98,7 @@ uint64 BV::rank(uint64 i)
 uint64 BV::rem_rank(uint64 i)
 {
     uint64 res = 0;
-    for (uint64 j = (i/BV::chunk_size) * BV::word_per_chunk; j < ((i+8)>>3)-1; j++)
+    for (uint64 j = (i/BV::chunk_size) * BV::byte_per_chunk; j < ((i+8)>>3)-1; j++)
     {
         res += BV::rank_table[(uchar)(*this)[j]];
     }
@@ -149,6 +137,7 @@ void BV::report_detail()
     std::cout << "BV::report_detail()" << std::endl;
     std::cout << "length: " << N << std::endl;
     std::cout << "total_bits: " << B << std::endl;
-    std::cout << "first word: " << std::hex << +(*this)[0] << std::dec << std::endl;
+    std::cout << "first 4 chars: " << std::hex << +(*this)[0] << " " << +(*this)[1] << " " <<  +(*this)[2] 
+    << " " << +(*this)[3] << std::dec << std::endl;
     std::cout << "report_detail done" << std::endl;
 }

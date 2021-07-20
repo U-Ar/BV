@@ -25,11 +25,11 @@ class BV
     //number of bits necessary for representing rank(chunk)
     static const uint64 chunk_bits = 16;
 
-    //number of words per block
-    static const uint64 word_per_block = BV::block_size / 64;
+    //number of bytes per block
+    static const uint64 byte_per_block = BV::block_size / 8;
 
-    //number of words per chunk
-    static const uint64 word_per_chunk = BV::chunk_size / 64;
+    //number of bytes per chunk
+    static const uint64 byte_per_chunk = BV::chunk_size / 8;
 
     static const uint64 rank_table[];
 
@@ -38,7 +38,7 @@ public:
     explicit BV(std::string const& filename);
     explicit BV(size_t size);
     // constructor for std::vector<uchar>
-    BV(std::vector<uint64> const& il) : BV(il.size())
+    BV(std::vector<uchar> const& il) : BV(il.size())
     {
         size_t idx = 0;
         for (; idx < il.size(); idx++)
@@ -52,11 +52,11 @@ public:
     //BV(const BV& other);
     ~BV();
 
-    uint64& operator[](size_t i)
+    char& operator[](size_t i)
     {
         return array[i];
     }
-    const uint64& operator[](size_t i) const
+    const char& operator[](size_t i) const
     {
         return array[i];
     }
@@ -79,7 +79,7 @@ public:
 private:
     uint64 rem_rank(uint64 i);
 
-    uint64* array;
+    char* array;
     uint64 N;
     uint64 B;
     bool rank_enabled, select_enabled;
