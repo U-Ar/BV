@@ -30,7 +30,7 @@ uint64 SparseBlock::space()
 
 
 DenseBlock::DenseBlock(BV& const bv, uint64 left, uint64 right, uint64 o)
-    : ones(o)
+    : ones(o), length(right-left+1), num_leaf((length+DenseBlock::chunk_size-1)/DenseBlock::chunk_size)
 {
 
 }
