@@ -4,6 +4,7 @@
 #include<cassert>
 #include<array>
 #include<random>
+#include<chrono>
 
 #include <sdsl/int_vector.hpp>
 #include <sdsl/rank_support_v.hpp>
@@ -144,6 +145,8 @@ int main() {
         std::cout << std::dec << "rank(" << i << "): " << bobj.rank(i) << " " << rs(i+1) << std::endl;
     }
 
+
+    std::cout << "test at random i for 100 times" << std::endl;
     std::uniform_int_distribution<> dist(0,bobj.bit_size()-1);
     std::random_device seed_gen;
     std::default_random_engine engine(seed_gen());
@@ -152,9 +155,34 @@ int main() {
     for (size_t i = 0; i < 100; i++) randoms[i] = dist(engine);
     for (size_t i = 0; i < randoms.size(); i++) 
     {
-        std::cout << std::dec << "rank(" << randoms[i] << "): " << bobj.rank(randoms[i]) << " " << rs(randoms[i]+1) << std::endl;
+        assert(bobj.rank(randoms[i]) == rs(randoms[i]+1));
     }
+    std::cout << "done" << std::endl;
 
+
+
+
+    uint64 myrank_time = 0, sdslrank_time = 0;
+
+    std::vector<uint64> vec(1000), vec2(1000);
+    for (int i = 0; i < 100; i++)
+    {
+        for (size_t i = 0; i < 1000; i++) {
+            vec[i] = dist(engine); vec2[i] = vec[i]+1;
+        }
+
+        auto start = std::chrono::high_resolution_clock::now();
+        for (size_t i = 0; i < 1000; i++) bobj.rank(vec[i]);
+        auto end = std::chrono::high_resolution_clock::now();
+        myrank_time += std::chrono::duration_cast<std::chrono::nanoseconds>(end-start).count();
+
+        start = std::chrono::high_resolution_clock::now();
+        for (size_t i = 0; i < 1000; i++) rs(vec2[i]);
+        end = std::chrono::high_resolution_clock::now();
+        sdslrank_time += std::chrono::duration_cast<std::chrono::nanoseconds>(end-start).count();
+    }
+    std::cout << "avg time for   myrank : " << myrank_time / 100 << std::endl;
+    std::cout << "avg time for sdslrank : " << sdslrank_time / 100 << std::endl;
 
 
 
