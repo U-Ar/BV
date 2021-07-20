@@ -2,11 +2,18 @@
 #include<vector>
 #include<limits>
 #include<cassert>
+#include<array>
+#include<random>
+
+#include <sdsl/int_vector.hpp>
+#include <sdsl/rank_support_v.hpp>
+#include <sdsl/rank_support_v5.hpp>
+using namespace sdsl;
+
 #include "BV.h"
 
 int main() {
-
-    std::cout << "-- BVTest starts --" << std::endl;
+    std::cout << "--------------        BVTest        ----------------" << std::endl;
     std::cout << "build BV from vector<uchar>" << std::endl;
     BV b1(std::vector<uchar>{0x10, 0x03, 0x87, 0x1f});
     b1.build_rank();
@@ -113,9 +120,47 @@ int main() {
 
 
 
+    std::cout << "------test using sdsl library------" << std::endl;
+
+    std::cout << "building on dna.50MB" << std::endl;
+    BV bobj("test/dna.50MB");
+    std::cout << "read" << std::endl;
+    bobj.build_rank();
+    std::cout << "done" << std::endl;
+
+
+    bit_vector btest(bobj.bit_size(),0,1);
+
+    for (uint64 i = 0; i < bobj.bit_size(); i++)
+    {
+        btest[i] = (bobj[i/8] & (1 << (i%8))) > 0;
+    }
+
+    rank_support_v rs;
+    util::init_support(rs,&btest);
+
+    for (int i = 127; i < 2000; i+=128) 
+    {
+        std::cout << std::dec << "rank(" << i << "): " << bobj.rank(i) << " " << rs(i+1) << std::endl;
+    }
+
+    std::uniform_int_distribution<> dist(0,bobj.bit_size()-1);
+    std::random_device seed_gen;
+    std::default_random_engine engine(seed_gen());
+
+    std::vector<uint64> randoms(100);
+    for (size_t i = 0; i < 100; i++) randoms[i] = dist(engine);
+    for (size_t i = 0; i < randoms.size(); i++) 
+    {
+        std::cout << std::dec << "rank(" << randoms[i] << "): " << bobj.rank(randoms[i]) << " " << rs(randoms[i]+1) << std::endl;
+    }
+
+
+
+
     
 
+    std::cout << "-----------------------------------" << std::endl;
 
-
-    std::cout << "-- BVTest  ends  --" << std::endl;
+    std::cout << "----------------------------------------------------" << std::endl;
 }

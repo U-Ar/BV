@@ -16,14 +16,14 @@ using uchar = unsigned char;
 
 class BV
 {
-    static const uint64 block_size = 2 << 16;
+    static const uint64 block_size = 1 << 15;
     static const uint64 chunk_size = 256;
 
     //number of bits necessary for representing rank(block)
-    static const uint64 block_bits = 16;
+    static const uint64 block_bits = 64;
 
     //number of bits necessary for representing rank(chunk)
-    static const uint64 chunk_bits = 8;
+    static const uint64 chunk_bits = 16;
 
     //number of bytes per block
     static const uint64 byte_per_block = BV::block_size / 8;
@@ -72,6 +72,9 @@ public:
     uint64 select_space();
 
     void report_detail();
+
+    inline uint64 size() { return N; }
+    inline uint64 bit_size() { return B; }
 
 private:
     uint64 rem_rank(uint64 i);

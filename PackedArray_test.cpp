@@ -73,6 +73,16 @@ int main()
     }
     std::cout << "Done" << std::endl << std::endl;
 
+    std::cout << "Test for n=1000, bits=8, array[i] = i%129" << std::endl;
+    PackedArray pa5(1000,8);
+    for (uint64 i = 0; i < 1000; i++) {
+        pa5.set(i,i%129);
+    }
+    for (uint64 i = 0; i < 1000; i++) {
+        assert(pa5.get(i) == i%129);
+    }
+    std::cout << "Done" << std::endl << std::endl;
+
 
 
     std::cout << "-- PackedArrayTest  ends  --" << std::endl;

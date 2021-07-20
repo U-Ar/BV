@@ -68,9 +68,10 @@ void BV::build_rank()
     {
         block_rank->set(i,acc_b);
         acc_c = 0;
-        for (uint64 j = 0; j < num_chunk; j++)
+        for (uint64 j = 0; j < BV::block_size / BV::chunk_size; j++)
         {
             chunk_rank->set(i * BV::block_size / BV::chunk_size + j, acc_c);
+
             if (i == num_block-1 && j == num_chunk-1) break;
             for (uint64 k = 0; k < BV::byte_per_chunk; k++)
             {
@@ -90,6 +91,7 @@ void BV::build_select()
 
 uint64 BV::rank(uint64 i)
 {
+    //std::cout << block_rank->get(i/BV::block_size) << " " << chunk_rank->get(i/BV::chunk_size) << " ";
     return block_rank->get(i/BV::block_size) + chunk_rank->get(i/BV::chunk_size) + rem_rank(i);
 }
 
@@ -98,7 +100,7 @@ uint64 BV::rem_rank(uint64 i)
     uint64 res = 0;
     for (uint64 j = (i/BV::chunk_size) * BV::byte_per_chunk; j < ((i+8)>>3)-1; j++)
     {
-        res += BV::rank_table[(*this)[j]];
+        res += BV::rank_table[(uchar)(*this)[j]];
     }
     return res + BV::rank_table[(uchar)((*this)[(i>>3)] << (7 - (i%8)))];
 }
@@ -136,6 +138,6 @@ void BV::report_detail()
     std::cout << "length: " << N << std::endl;
     std::cout << "total_bits: " << B << std::endl;
     std::cout << "first 4 chars: " << std::hex << +(*this)[0] << " " << +(*this)[1] << " " <<  +(*this)[2] 
-    << " " << +(*this)[3] << std::endl;
+    << " " << +(*this)[3] << std::dec << std::endl;
     std::cout << "report_detail done" << std::endl;
 }
