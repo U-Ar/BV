@@ -8,10 +8,13 @@ LIBS = -lsdsl -ldivsufsort -ldivsufsort64
 PROGRAMS = PackedArray_test BV_test
 
 
+run_select: bvselecttest
+	./BV_select_test
+
 run_test: packedarraytest bvranktest bvselecttest
 	./PackedArray_test
-	./BV_test
-	./BV_bvselecttest
+	./BV_rank_test
+	./BV_select_test
 
 packedarraytest:
 	$(CC) $(FLAGS) $(IFLAG) $(LFLAG) -o PackedArray_test PackedArray_test.cpp PackedArray.cpp $(LIBS)

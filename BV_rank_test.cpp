@@ -18,7 +18,6 @@ int main() {
     std::cout << "build BV from vector<uchar>" << std::endl;
     BV b1(std::vector<uchar>{0x10, 0x03, 0x87, 0x1f});
     b1.build_rank();
-    b1.build_select();
     std::cout << "done" << std::endl;
 
     std::cout << "rank on BV{0x10, 0x03, 0x87, 0x1f}" << std::endl;

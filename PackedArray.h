@@ -20,8 +20,8 @@ public:
     inline uint64 space() { return total_bits; }
 private:
     uint64 size;
-    uint64 total_bits;
     uint64 bits;
+    uint64 total_bits;
     uint64* array;
     inline void set_upper_bits(uint64& a, uint64 num_bits, uint64 val)
     {

@@ -97,11 +97,14 @@ void BV::build_select()
     area_rank = new SelectBlock*[num_area];
     
     uint64 left = 0, right = 0, idx = 0, ones = 0, pre_ones = 0;
+    
     for (size_t i = 0; i < N; i++) 
     {
         pre_ones = ones;
         //ones += popcount((uchar)(*this)[i]);
         ones += rank_table[(uchar)(*this)[i]];
+        
+                        println("ここまでOK");
         if (ones >= area_ones)
         {
             for (size_t j = 0; j < 8; j++)
@@ -111,7 +114,7 @@ void BV::build_select()
                     if (pre_ones == area_ones) {
                         //ones = popcount(((uchar)(*this)[i]) >> (j+1));
                         ones = rank_table[((uchar)(*this)[i]) >> (j+1)];
-                        right = i << 3 + j;
+                        right = (i << 3) + j;
                         if (right - left >= boundary_size)
                         {
                             area_rank[idx++] = new SparseBlock(this,left,right,area_ones);
@@ -229,7 +232,7 @@ uint64 SparseBlock::select(uint64 i)
 
 uint64 SparseBlock::space()
 {
-    return 64 * ones;
+    return 64 * (ones+1);
 }
 
 
@@ -338,6 +341,7 @@ uint64 DenseBlock::leaf_select(uint64 i, uint64 leaf)
         if (((uchar)(*bv)[pos>>3]) & (1 << (pos%8)))
             if (!(--i)) return pos;
     }
+    return std::numeric_limits<uint64>::max();
 }
 
 uint64 DenseBlock::space()

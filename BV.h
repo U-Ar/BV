@@ -15,6 +15,7 @@ using uint64 = __UINT64_TYPE__;
 using uint32 = __UINT32_TYPE__;
 using uchar = unsigned char;
 
+class SelectBlock;
 
 class BV
 {
@@ -99,7 +100,6 @@ private:
 
     //----------- SELECT ------------
     uint64 num_area;
-    PackedArray* area_pos; // variable-length block for select
     SelectBlock** area_rank;
     //-------------------------------
 };
@@ -110,10 +110,10 @@ private:
 class SelectBlock
 {
 public:
-    SelectBlock();
-    virtual ~SelectBlock();
-    virtual uint64 select(uint64 i);
-    virtual uint64 space();
+    SelectBlock() {};
+    virtual ~SelectBlock() {};
+    virtual uint64 select(uint64 i) { return i; };
+    virtual uint64 space() { return 0; };
 };
 
 class SparseBlock : public SelectBlock
