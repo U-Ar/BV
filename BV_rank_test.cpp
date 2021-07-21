@@ -122,67 +122,18 @@ int main() {
     rank_support_v rs;
     util::init_support(rs,&btest);
 
-
-    // rank(33417547) fails  BV:12448664  SDSL:12397447    2^15=32768
-    // rank(33407740) fails  BV:12444883  SDSL:12393666
-
-    std::cout << "test for around 33407740" << std::endl;
-    uint64 rk = 0;
-    for (uint i = 0; i < 33407740; i++) {
-        if (bobj[i/8] & (1 << (i%8))) rk++;
-    }
-    std::cout << "row rank : " << rk << std::endl;
-    std::cout << "BV       : " << bobj.rank(33407740) << std::endl;
-    std::cout << "SDSL     : " << rs(33407740) << std::endl;
-
-    
-    uint64 a[] = {33390592, 33390593, 33423360, 33423361};
-    for (uint64 i : a){
-        std::cout << std::dec << "rank(" << i << "): " << bobj.rank(i) << " " << rs(i) << std::endl;
-    }
-
-
-    std::cout << "test at random i for 10000 times" << std::endl;
+    std::cout << "test at random i for 100000 times" << std::endl;
     std::uniform_int_distribution<> dist(1,bobj.bit_size());
     std::random_device seed_gen;
     std::default_random_engine engine(seed_gen());
 
-    std::vector<uint64> randoms(10000);
-    for (size_t i = 0; i < 10000; i++) randoms[i] = dist(engine);
+    std::vector<uint64> randoms(100000);
+    for (size_t i = 0; i < 100000; i++) randoms[i] = dist(engine);
     for (size_t i = 0; i < randoms.size(); i++) 
     {
         assert(bobj.rank(randoms[i]) == rs(randoms[i]));
     }
     std::cout << "done" << std::endl;
-
-
-
-
-    uint64 myrank_time = 0, sdslrank_time = 0;
-
-    std::vector<uint64> vec(1000);
-    for (int i = 0; i < 100; i++)
-    {
-        for (size_t i = 0; i < 1000; i++) {
-            vec[i] = dist(engine); 
-        }
-
-        auto start = std::chrono::high_resolution_clock::now();
-        for (size_t i = 0; i < 1000; i++) bobj.rank(vec[i]);
-        auto end = std::chrono::high_resolution_clock::now();
-        myrank_time += std::chrono::duration_cast<std::chrono::nanoseconds>(end-start).count();
-
-        start = std::chrono::high_resolution_clock::now();
-        for (size_t i = 0; i < 1000; i++) rs(vec[i]);
-        end = std::chrono::high_resolution_clock::now();
-        sdslrank_time += std::chrono::duration_cast<std::chrono::nanoseconds>(end-start).count();
-    }
-    std::cout << "avg time for   myrank : " << myrank_time / 100 << std::endl;
-    std::cout << "avg time for sdslrank : " << sdslrank_time / 100 << std::endl;
-
-
-
-    
 
     std::cout << "-----------------------------------" << std::endl;
 

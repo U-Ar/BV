@@ -49,6 +49,7 @@ public:
         size_t idx = 0;
         for (; idx < il.size(); idx++)
         {
+            O += popcount(il[idx]);
             (*this)[idx] = il[idx];
         }
     }

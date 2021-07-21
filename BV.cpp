@@ -34,7 +34,7 @@ const uint64 BV::rank_table[] = {
 BV::BV(size_t size)
     : rank_enabled(false), select_enabled(false)
 {
-    array = new char[size];
+    array = new char[size]();
     N = (uint64)size;
     B = 8 * N;
 }
@@ -79,38 +79,23 @@ void BV::build_rank()
     uint64 acc_b = 0, acc_c;
     for (uint64 i = 0; i < num_block; i++)
     {
-        if (i == 1018 || i == 1019 || i == 1020)
-            std::cout << "acc_b at          " << i  << " : " << acc_b << std::endl;
-        if (i == 1018 || i == 1019 || i == 1020)
-            std::cout << "before set get at " << i  << " : " << block_rank->get(i) << std::endl;
-
         block_rank->set(i,acc_b);
-
-        if (i == 1018 || i == 1019 || i == 1020)
-            std::cout << "               at " << i  << " : " << block_rank->get(i) << std::endl;
-
         acc_c = 0;
         for (uint64 j = 0; j < BV::block_size / BV::chunk_size; j++)
         {
+            //if (acc_c == 56) std::cout << i << " " << j << " " << acc_b << std::endl;
             chunk_rank->set(i * BV::block_size / BV::chunk_size + j, acc_c);
-
+            
             //if (i == num_block-1 && j == num_chunk-1) break;
             if (i * BV::block_size / BV::chunk_size + j == num_chunk-1) break;
+
             for (uint64 k = 0; k < BV::byte_per_chunk; k++)
             {
-                acc_c += popcount(array[i*BV::byte_per_block+j*BV::byte_per_chunk+k]);
+                acc_c += popcount((uchar)array[i*BV::byte_per_block+j*BV::byte_per_chunk+k]);
             }
         }
         acc_b += acc_c;
     }
-
-    if (num_block > 1100) {
-        std::cout << "Bigblock: " << std::endl;
-        std::cout << "at 1018: "  << block_rank->get(1018) << std::endl;
-        std::cout << "at 1019: "  << block_rank->get(1019) << std::endl;
-        std::cout << "at 1020: "  << block_rank->get(1020) << std::endl;
-    }
-
     rank_enabled = true;
 }
 
@@ -225,8 +210,9 @@ uint64 BV::select_space()
 void BV::report_detail()
 {
     std::cout << "BV::report_detail()" << std::endl;
-    std::cout << "length: " << N << std::endl;
+    std::cout << "length:     " << N << std::endl;
     std::cout << "total_bits: " << B << std::endl;
+    std::cout << "ones:       " << O << std::endl;
     std::cout << "first 4 chars: " << std::hex << +(*this)[0] << " " << +(*this)[1] << " " <<  +(*this)[2] 
     << " " << +(*this)[3] << std::dec << std::endl;
     std::cout << "report_detail done" << std::endl;
@@ -245,7 +231,7 @@ void BV::report_detail()
 SparseBlock::SparseBlock(const BV* bv, uint64 left, uint64 right, uint64 o)
     : ones(o)
 {
-    positions = new uint64[ones+1];
+    positions = new uint64[ones+1]();
     uint64 idx = 1;
     positions[0] = 0;
     for (uint64 pos = left; pos <= right; pos++)
@@ -294,7 +280,7 @@ DenseBlock::DenseBlock(BV* ptr, uint64 l, uint64 r, uint64 o)
     uint64 deeper = (arity*(num_leaf-width)+arity-2)/(arity-1);
     num_node += deeper;
 
-    tree = new uint32[num_node+1];
+    tree = new uint32[num_node+1]();
 
 
     //initialize for deeper leaves
@@ -344,7 +330,7 @@ uint64 DenseBlock::select(uint64 i)
 
         // DEBUG REGION
         /*
-        if (i == 199 || i == 200) 
+        if (left > 9700000) 
         {
             std::cout << "tree array:" << std::endl;
             for (int l = 1; l <= num_node; l++) std::cout << tree[l] << " "; std::cout << std::endl;

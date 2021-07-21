@@ -73,49 +73,62 @@ int main() {
     }
 
 
-    std::cout << "--test at random i for 10000 times" << std::endl;
+    std::cout << "--test at random i for 100000 times" << std::endl;
     std::uniform_int_distribution<> dist(1,bobj.ones());
     std::random_device seed_gen;
     std::default_random_engine engine(seed_gen());
 
     
-    std::vector<uint64> randoms(10000);
-    for (size_t i = 0; i < 10000; i++) randoms[i] = dist(engine);
+    std::vector<uint64> randoms(100000);
+    
+    for (size_t i = 0; i < randoms.size(); i++) randoms[i] = dist(engine);
     for (size_t i = 0; i < randoms.size(); i++) 
     {
         assert(bobj.select(randoms[i]) == sls(randoms[i]));
     }
-    std::cout << "--test at random done" << std::endl;
+    std::cout << "--test at random done" << std::endl << std::endl;
+    
+
+
+
+    std::cout << "--test for very sparse bitvector for 100000 times" << std::endl;
+    std::cout << "length: 10000000, bits: 10000(approx)" << std::endl;
+    uint64 n = 10000000, b = 10000;
+    std::uniform_int_distribution<> bitdist(0,n-1);
+
+    std::cout << "-building start" << std::endl;
+    std::vector<unsigned char> vb((n+7)/8,0);
+    bit_vector bsparsetest(n,0,1);
+
+    for (uint64 i = 0; i < b; i++)
+    {
+        uint64 r = bitdist(engine);
+        bsparsetest[r] = 1;
+        vb[r/8] = vb[r/8] | (1 << (r%8));
+    }
+
+    BV bsparse(vb);
+    bsparse.build_rank();
+    bsparse.build_select();
+
+    select_support_mcl<1,1> slsp;
+    util::init_support(slsp,&bsparsetest);
+    std::cout << "-building done" << std::endl;
+
+
+    std::uniform_int_distribution<> distsparse(1,bsparse.ones());
+
+    for (size_t i = 0; i < randoms.size(); i++) randoms[i] = distsparse(engine);
+    for (size_t i = 0; i < randoms.size(); i++) 
+    {
+        assert(bsparse.select(randoms[i]) == slsp(randoms[i]));
+    }
+
+    std::cout << "--test at sparse done" << std::endl << std::endl;
+
 
 
 
     std::cout << std::endl << std::endl << "---------  Test Using SDSL Completed  ---------" << std::endl << std::endl;
-
-
     std::cout << "--------------      SelectTest Completed       ----------------" << std::endl << std::endl;
-
-
-    /*
-    uint64 myrank_time = 0, sdslrank_time = 0;
-
-    std::vector<uint64> vec(1000), vec2(1000);
-    for (int i = 0; i < 100; i++)
-    {
-        for (size_t i = 0; i < 1000; i++) {
-            vec[i] = dist(engine); vec2[i] = vec[i]+1;
-        }
-
-        auto start = std::chrono::high_resolution_clock::now();
-        for (size_t i = 0; i < 1000; i++) bobj.rank(vec[i]);
-        auto end = std::chrono::high_resolution_clock::now();
-        myrank_time += std::chrono::duration_cast<std::chrono::nanoseconds>(end-start).count();
-
-        start = std::chrono::high_resolution_clock::now();
-        for (size_t i = 0; i < 1000; i++) rs(vec2[i]);
-        end = std::chrono::high_resolution_clock::now();
-        sdslrank_time += std::chrono::duration_cast<std::chrono::nanoseconds>(end-start).count();
-    }
-    std::cout << "avg time for   myrank : " << myrank_time / 100 << std::endl;
-    std::cout << "avg time for sdslrank : " << sdslrank_time / 100 << std::endl;*/
-
 }
