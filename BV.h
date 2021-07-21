@@ -1,13 +1,14 @@
 #ifndef INCLUDED_BV_H
 #define INCLUDED_BV_H
 
-#include<vector>
-#include<string>
+#include<algorithm>
 #include<fstream>
+#include<iomanip>
+#include<iostream>
 #include<limits>
 #include<memory>
-#include<iostream>
-#include<iomanip>
+#include<string>
+#include<vector>
 #include "PackedArray.h"
 #include "bit_op.h"
 
@@ -19,27 +20,26 @@ class SelectBlock;
 
 class BV
 {
-
+public:
     //------------ RANK -------------
-    static const uint64 block_size = 1 << 15;
-    static const uint64 chunk_size = 256;
+    static uint64 block_size;
+    static uint64 chunk_size;
     //number of bits necessary for representing rank(block)
-    static const uint64 block_bits = 64;
+    static uint64 block_bits;
     //number of bits necessary for representing rank(chunk)
-    static const uint64 chunk_bits = 16;
+    static uint64 chunk_bits;
     //number of bytes per block
-    static const uint64 byte_per_block = BV::block_size / 8;
+    static uint64 byte_per_block;
     //number of bytes per chunk
-    static const uint64 byte_per_chunk = BV::chunk_size / 8;
+    static uint64 byte_per_chunk;
     static const uint64 rank_table[];
     //-------------------------------
 
     //----------- SELECT ------------
-    static const uint64 area_ones = 1 << 9;
-    static const uint64 boundary_size = 1 << 18;
+    static uint64 area_ones;
+    static uint64 boundary_size;
     //-------------------------------
 
-public:
 
     explicit BV(std::string const& filename);
     explicit BV(size_t size);
@@ -82,6 +82,7 @@ public:
 
     inline uint64 size() { return N; }
     inline uint64 bit_size() { return B; }
+    inline uint64 ones() { return O; }
 
 private:
     uint64 rem_rank(uint64 i);

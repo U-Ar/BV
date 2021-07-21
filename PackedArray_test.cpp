@@ -7,7 +7,7 @@
 
 int main() 
 {
-    std::cout << "-- PackedArrayTest starts --" << std::endl;
+    std::cout << "---- PackedArrayTest          ----" << std::endl;
 
     PackedArray pa1(100,64);
     std::cout << "Test for n=100, bits=64" << std::endl;
@@ -83,9 +83,31 @@ int main()
     }
     std::cout << "Done" << std::endl << std::endl;
 
+    std::cout << "Test for n=100000, bits=16, array[i] = i%32769" << std::endl;
+    PackedArray pa6(100000,16);
+    for (uint64 i = 0; i < 100000; i++) {
+        pa6.set(i,i%32769);
+    }
+    for (uint64 i = 0; i < 100000; i++) {
+        assert(pa6.get(i) == i%32769);
+    }
+    std::cout << "Done" << std::endl << std::endl;
 
 
-    std::cout << "-- PackedArrayTest  ends  --" << std::endl;
+    std::cout << "Test for n=10000, bits=64, failed case at rank(33407740)" << std::endl;
+    PackedArray pa7(10000,64);
+    pa7.set(1018, 12374874);
+    pa7.set(1019, 12387266);
+    pa7.set(1020, 12399650);
+    std::cout << pa7.get(1019) << std::endl;
+    
+    assert(pa7.get(1019) == 12387266);
+    
+    std::cout << "Done" << std::endl << std::endl;
+
+
+
+    std::cout << "---- PackedArrayTest  Completed  ----" << std::endl;
 
     
 }

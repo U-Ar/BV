@@ -8,69 +8,54 @@
 #include<string>
 
 #include <sdsl/int_vector.hpp>
-//#include <sdsl/rank_support_v.hpp>
-//#include <sdsl/rank_support_v5.hpp>
+#include <sdsl/rank_support_v.hpp>
 #include <sdsl/select_support_mcl.hpp>
+
 using namespace sdsl;
 
 #include "BV.h"
 
 std::string testfile = "test/dna.50MB";
 
-int main() {
-    std::cout << std::endl <<  "--------------        SelectTest on BV         ----------------" << std::endl << std::endl;
-    std::cout << "build BV from vector<uchar>{0x10, 0x03, 0x87, 0x1f}" << std::endl;
-    BV b1(std::vector<uchar>{0x10, 0x03, 0x87, 0x1f});
-    std::cout << "-building rank" << std::endl;
-    b1.build_rank();
-    std::cout << "-done" << std::endl << std::endl;
-    std::cout << "-building select" << std::endl;
-    b1.build_select();
-    std::cout << "-done" << std::endl << std::endl;
+inline void println(std::string const& str)
+{
+    std::cout << str << std::endl;
+}
 
-    
-    std::cout << "-select on BV{0x10, 0x03, 0x87, 0x1f}" << std::endl;
-    assert(b1.select(1) == 4);
-    assert(b1.select(2) == 8);
-    assert(b1.select(3) == 9);
-    assert(b1.select(4) == 16);
-    assert(b1.select(5) == 17);
-    assert(b1.select(6) == 18);
-    assert(b1.select(7) == 23);
-    assert(b1.select(8) == 24);
-    assert(b1.select(9) == 25);
-    assert(b1.select(10) == 26);
-    assert(b1.select(11) == 27);
-    assert(b1.select(12) == 28);
-    std::cout << "-select done" << std::endl;
+inline void println(uint64 const a)
+{
+    std::cout << a << std::endl;
+}
 
 
-    std::cout << std::endl << std::endl << "---------  Test Using SDSL            ---------" << std::endl << std::endl;
-    
-    std::cout << "-building on " << testfile << std::endl;
+
+int main()
+{
+    std::cout << std::endl << "Performance Benchmark of BV and SDSL on " << testfile << std::endl;
+
+
+    std::cout << "- BV building on " << testfile << std::endl;
     BV bobj(testfile);
     bobj.build_rank();
     bobj.build_select();
-    std::cout << "-building done" << std::endl << std::endl;
+    std::cout << "- BV building done" << std::endl << std::endl;
 
-    std::cout << testfile << " : " << std::endl;
+    std::cout << testfile << " file info " << std::endl;
     std::cout << "number of bytes : " << bobj.size() << std::endl;
     std::cout << "number of bits  : " << bobj.bit_size() << std::endl;
-    std::cout << "number of ones  : " << bobj.ones() << std::endl;
+    std::cout << "number of ones  : " << bobj.ones() << std::endl << std::endl;
 
+    std::cout << "- SDSL building on " << testfile << std::endl;
     bit_vector btest(bobj.bit_size(),0,1);
     for (uint64 i = 0; i < bobj.bit_size(); i++)
     {
         btest[i] = (bobj[i/8] & (1 << (i%8))) > 0;
     }
+    rank_support_v rs;
+    util::init_support(rs,&btest);
     select_support_mcl<1,1> sls;
     util::init_support(sls,&btest);
-
-    std::cout << "                    BV     SDSL" << std::endl;
-    for (int i = 1; i < 20000; i += 1000) 
-    {   
-        std::cout << std::dec << "select(" << i << ") : " << std::setw(8) << bobj.select(i) << " " << std::setw(8) << sls(i) << std::endl;
-    }
+    std::cout << "- SDSL building done" << std::endl << std::endl;
 
 
     std::cout << "--test at random i for 10000 times" << std::endl;
@@ -78,21 +63,22 @@ int main() {
     std::random_device seed_gen;
     std::default_random_engine engine(seed_gen());
 
-    
-    std::vector<uint64> randoms(10000);
+    /*std::vector<uint64> randoms(10000);
     for (size_t i = 0; i < 10000; i++) randoms[i] = dist(engine);
     for (size_t i = 0; i < randoms.size(); i++) 
     {
+        assert(bobj.rank(randoms[i]) == rs(randoms[i]));
         assert(bobj.select(randoms[i]) == sls(randoms[i]));
+    }*/
+    std::vector<uint64> randoms(100);
+    for (size_t i = 0; i < 100; i++) randoms[i] = dist(engine);
+    for (size_t i = 0; i < randoms.size(); i++) 
+    {
+        std::cout << "rank: " << bobj.rank(randoms[i]) << " "<< rs(randoms[i]) << std::endl;
+        std::cout << "select: " << bobj.select(randoms[i])  << " " << sls(randoms[i]) << std::endl;
     }
     std::cout << "--test at random done" << std::endl;
 
-
-
-    std::cout << std::endl << std::endl << "---------  Test Using SDSL Completed  ---------" << std::endl << std::endl;
-
-
-    std::cout << "--------------      SelectTest Completed       ----------------" << std::endl << std::endl;
 
 
     /*
@@ -117,5 +103,6 @@ int main() {
     }
     std::cout << "avg time for   myrank : " << myrank_time / 100 << std::endl;
     std::cout << "avg time for sdslrank : " << sdslrank_time / 100 << std::endl;*/
+
 
 }

@@ -3,7 +3,7 @@
 PackedArray::PackedArray(uint64 n_elems, uint64 n_bits)
     : size(n_elems), bits(n_bits), total_bits(n_elems*n_bits)
 {
-    array = new uint64[(total_bits+63)/64];
+    array = new uint64[(total_bits+63)/64]();
 }
 
 PackedArray::~PackedArray()

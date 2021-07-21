@@ -6,17 +6,10 @@
 
 using uint64 = __UINT64_TYPE__;
 
-
-
-inline void println(std::string const& str)
-{
-    std::cout << str << std::endl;
-}
-
 inline uint64 popcount(uint64 n)
 {
 #ifdef __GNUC__
-    return __builtin_popcountll(n);
+    return __builtin_popcountll(n); 
 #else 
     uint64 c = 0;
     for (; n; ++c)
@@ -24,7 +17,5 @@ inline uint64 popcount(uint64 n)
     return c;
 #endif
 }
-
-
 
 #endif 

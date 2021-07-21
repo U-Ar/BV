@@ -25,27 +25,27 @@ private:
     uint64* array;
     inline void set_upper_bits(uint64& a, uint64 num_bits, uint64 val)
     {
-        a = (a & (0xffffffffffffffff >> num_bits)) | ((val & ((1 << num_bits)-1)) << (64-num_bits));
+        a = (a & (0xffffffffffffffffUL >> num_bits)) | ((val & ((1 << num_bits)-1)) << (64-num_bits));
     }
     inline void set_lower_bits(uint64& a, uint64 num_bits, uint64 val)
     {
-        a = (a & (0xffffffffffffffff << (num_bits))) | (val >> (bits-num_bits));
+        a = (a & (0xffffffffffffffffUL << (num_bits))) | (val >> (bits-num_bits));
     }
     inline void set_internal_bits(uint64& a, uint64 lb, uint64 rb, uint64 val)
     {
-        a = (a & ((0xffffffffffffffff << (64-lb))|(0xffffffffffffffff >> (rb+1)))) | (val << (63-rb));
+        a = (a & ((0xffffffffffffffffUL << (64-lb))|(0xffffffffffffffffUL >> (rb+1)))) | (val << (63-rb));
     }
     inline uint64 get_upper_bits(uint64 a, uint64 num_bits)
     {
-        return a & (0xffffffffffffffff << (64-num_bits));
+        return a & (0xffffffffffffffffUL << (64-num_bits));
     }
     inline uint64 get_lower_bits(uint64 a, uint64 num_bits)
     {
-        return a & (0xffffffffffffffff >> (64-num_bits));
+        return a & (0xffffffffffffffffUL >> (64-num_bits));
     }
     inline uint64 get_internal_bits(uint64 a, uint64 lb, uint64 rb)
     {
-        return (a & (0xffffffffffffffff >> (lb))) >> (63-rb);
+        return (a & (0xffffffffffffffffUL >> (lb))) >> (63-rb);
     }
 };
 

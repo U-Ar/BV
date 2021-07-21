@@ -5,25 +5,37 @@ FLAGS        = -std=c++17 -Wall -Wextra -O3 -ffast-math -funroll-loops -msse4.2 
 IFLAG = -I$(HOME)/sdsl/include
 LFLAG = -L$(HOME)/sdsl/lib
 LIBS = -lsdsl -ldivsufsort -ldivsufsort64
-PROGRAMS = PackedArray_test BV_test
+PROGRAMS = PackedArray_test BV_rank_test BV_select_test benchmark
 
 
-run_select: bvselecttest
+run_benchmark: benchmark 
+	./benchmark
+
+test_rank: BV_rank_test
+	./BV_rank_test
+
+test_select: BV_select_test
 	./BV_select_test
 
-run_test: packedarraytest bvranktest bvselecttest
+test_packed: PackedArray_test
+	./PackedArray_test
+
+test_all: PackedArray_test BV_rank_test BV_select_test
 	./PackedArray_test
 	./BV_rank_test
 	./BV_select_test
 
-packedarraytest:
+PackedArray_test: PackedArray_test.cpp PackedArray.h PackedArray.cpp
 	$(CC) $(FLAGS) $(IFLAG) $(LFLAG) -o PackedArray_test PackedArray_test.cpp PackedArray.cpp $(LIBS)
 
-bvranktest:
+BV_rank_test: BV_rank_test.cpp BV.h BV.cpp PackedArray.h PackedArray.cpp
 	$(CC) $(FLAGS) $(IFLAG) $(LFLAG) -o BV_rank_test BV_rank_test.cpp BV.cpp PackedArray.cpp $(LIBS)
 
-bvselecttest:
+BV_select_test: BV_select_test.cpp BV.h BV.cpp PackedArray.h PackedArray.cpp
 	$(CC) $(FLAGS) $(IFLAG) $(LFLAG) -o BV_select_test BV_select_test.cpp BV.cpp PackedArray.cpp $(LIBS)
+
+benchmark: benchmark.cpp BV.h BV.cpp PackedArray.h PackedArray.cpp
+	$(CC) $(FLAGS) $(IFLAG) $(LFLAG) -o benchmark benchmark.cpp BV.cpp PackedArray.cpp $(LIBS)
 
 clean:
 	rm -rf $(PROGRAMS) 

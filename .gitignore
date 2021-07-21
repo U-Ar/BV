@@ -2,3 +2,4 @@ test
 BV_rank_test
 BV_select_test
 PackedArray_test
+benchmark
