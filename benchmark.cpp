@@ -31,6 +31,14 @@ inline void println(uint64 const a)
 
 int main()
 {
+    BV::block_size = 1 << 15;
+    BV::chunk_size = 256;
+    //BV::block_bits = 64;
+    //BV::chunk_bits = 16;
+    BV::byte_per_block = BV::block_size / 8;
+    BV::byte_per_chunk = BV::chunk_size / 8;
+    BV::area_ones = 1 << 9;
+    BV::boundary_size = 1 << 18;
     std::cout << std::endl << "Performance Benchmark of BV and SDSL on " << testfile << std::endl;
 
 
@@ -43,6 +51,11 @@ int main()
     uint64 mybuild_time = std::chrono::duration_cast<std::chrono::microseconds>(end-start).count();
     std::cout << "- BV building done" << std::endl << std::endl;
     std::cout << "- BV building time = " << mybuild_time << "us" << std::endl << std::endl;
+
+    std::cout << "-- BV rank space = " << bobj.rank_space() << " bits " 
+        << (double)bobj.rank_space() / bobj.bit_size() << " per bit" << std::endl;
+    std::cout << "-- BV select space = " << bobj.select_space() << " bits "
+        << (double)bobj.select_space() / bobj.bit_size() << " per bit" << std::endl;
 
     std::cout << testfile << " file info " << std::endl;
     std::cout << "number of bytes : " << bobj.size() << std::endl;
@@ -203,12 +216,13 @@ int main()
         end = std::chrono::high_resolution_clock::now();
         sdslselect_time += std::chrono::duration_cast<std::chrono::nanoseconds>(end-start).count();
     }
+    std::cout << "(sparse)index size              : " << (double)bsparse.select_space() / bsparse.bit_size() << " per bit" << std::endl;
     std::cout << "(sparse)avg time for   myselect : " << myselect_time / 100 << " ns" << std::endl;
     std::cout << "(sparse)avg time for sdslselect : " << sdslselect_time / 100 << " ns" << std::endl;
     
 
 
-
+/*
     std::cout << std::endl << "cross validation for rank" << std::endl;
     uint64 BV::block_size = 1 << 15;
     uint64 BV::chunk_size = 256;
@@ -217,6 +231,6 @@ int main()
     uint64 BV::byte_per_block = BV::block_size / 8;
     uint64 BV::byte_per_chunk = BV::chunk_size / 8;
     uint64 BV::area_ones = 1 << 9;
-    uint64 BV::boundary_size = 1 << 18;
+    uint64 BV::boundary_size = 1 << 18;*/
 
 }

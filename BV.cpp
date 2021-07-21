@@ -9,6 +9,8 @@ uint64 BV::byte_per_block = BV::block_size / 8;
 uint64 BV::byte_per_chunk = BV::chunk_size / 8;
 uint64 BV::area_ones = 1 << 9;
 uint64 BV::boundary_size = 1 << 18;
+uint64 DenseBlock::chunk_size = 64;
+uint64 DenseBlock::arity = 4;
 
 const uint64 BV::rank_table[] = {
     0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4,

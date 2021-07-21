@@ -132,8 +132,8 @@ private:
 
 class DenseBlock : public SelectBlock
 {
-    static const uint64 chunk_size = 64;
-    static const uint64 arity = 4;
+    static uint64 chunk_size;
+    static uint64 arity;
 public:
     DenseBlock(BV* ptr, uint64 l, uint64 r, uint64 o);
     ~DenseBlock();

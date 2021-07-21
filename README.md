@@ -7,6 +7,7 @@ Implementation of Succinct Bit Vector BV
 	- rank0(i) = (the number of 0s in B[0:i-1])
 	- select(i) = (the position of i-th 1)
 	- all these operations return unsigned long 
+	- constructed from a binary file or vector\<unsigned char\>
 - PackedArray
 	- Use an array of 64bit unsigned integer as an array of arbitrary length integer (shorter than or equal to 64bit)
 
@@ -26,7 +27,7 @@ std::cout << "space complexity: " << bv.space() << " bits" << std::endl;
 
 ## Test files
 BV_rank_test.cpp, BV_select_test.cpp and benchmark.cpp assume that you can use sdsl-lite library
-(https://github.com/simongog/sdsl-lite). You can check if the results matches those of 
+(https://github.com/simongog/sdsl-lite). You can check if the results match those of 
 the external library and compare the processing time.
 Also a file name "test/dna.200MB" is now hardcoded. Rewrite it according to the binary file
 you want to test.
