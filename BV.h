@@ -4,6 +4,7 @@
 #include<vector>
 #include<string>
 #include<fstream>
+#include<limits>
 #include<memory>
 #include<iostream>
 #include<iomanip>
@@ -11,6 +12,7 @@
 #include "bit_op.h"
 
 using uint64 = __UINT64_TYPE__;
+using uint32 = __UINT32_TYPE__;
 using uchar = unsigned char;
 
 
@@ -117,7 +119,7 @@ public:
 class SparseBlock : public SelectBlock
 {
 public:
-    SparseBlock(BV& const bv, uint64 left, uint64 right, uint64 o);
+    SparseBlock(const BV* bv, uint64 left, uint64 right, uint64 o);
     ~SparseBlock();
     uint64 select(uint64 i) override;
     uint64 space() override;
@@ -128,17 +130,23 @@ private:
 
 class DenseBlock : public SelectBlock
 {
-    static const uint64 chunk_size = 256;
+    static const uint64 chunk_size = 64;
     static const uint64 arity = 4;
 public:
-    DenseBlock(BV& const bv, uint64 left, uint64 right, uint64 o);
+    DenseBlock(BV* ptr, uint64 l, uint64 r, uint64 o);
     ~DenseBlock();
     uint64 select(uint64 i) override;
     uint64 space() override;
 private:
+    uint64 leaf_select(uint64 i, uint64 leaf);
+    
+    BV* bv;
     uint64 ones;
+    uint64 left, right;
     uint64 length;
     uint64 num_leaf;
+    uint64 num_node;
+    uint32* tree;
 };
 
 

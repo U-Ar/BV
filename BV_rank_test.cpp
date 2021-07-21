@@ -14,14 +14,14 @@ using namespace sdsl;
 #include "BV.h"
 
 int main() {
-    std::cout << "--------------        BVTest        ----------------" << std::endl;
+    std::cout << "--------------        Rank Test on BV        ----------------" << std::endl;
     std::cout << "build BV from vector<uchar>" << std::endl;
     BV b1(std::vector<uchar>{0x10, 0x03, 0x87, 0x1f});
     b1.build_rank();
+    b1.build_select();
     std::cout << "done" << std::endl;
 
     std::cout << "rank on BV{0x10, 0x03, 0x87, 0x1f}" << std::endl;
-    b1.report_detail();
 
     assert(b1.rank(0) == 0);
     assert(b1.rank(1) == 0);
@@ -55,8 +55,7 @@ int main() {
     assert(b1.rank(29) == 12);
     assert(b1.rank(30) == 12);
     assert(b1.rank(31) == 12);
-    std::cout << "done" << std::endl;
-
+    std::cout << "rank done" << std::endl;
 
     std::cout << "build BV using BV(size) and operator[]" << std::endl;
     BV b2((size_t)4);

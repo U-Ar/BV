@@ -51,7 +51,8 @@ BV::~BV()
         delete chunk_rank;
     }
     if (select_enabled) {
-        ;
+        for (uint64 i = 0; i < num_area; i++) delete area_rank[i];
+        delete[] area_rank;
     }
 }
 
@@ -89,16 +90,18 @@ void BV::build_select()
     O = 0;
     for (size_t i = 0; i < N; i++) 
     {
-        O += popcount((uchar)(*this)[i]);
+        //O += popcount((uchar)(*this)[i]);
+        O += rank_table[(uchar)(*this)[i]];
     }
     num_area = (O + area_ones - 1) / area_ones;
-    area_rank = new (SelectBlock*)[num_area];
+    area_rank = new SelectBlock*[num_area];
     
     uint64 left = 0, right = 0, idx = 0, ones = 0, pre_ones = 0;
     for (size_t i = 0; i < N; i++) 
     {
         pre_ones = ones;
-        ones += popcount((uchar)(*this)[i]);
+        //ones += popcount((uchar)(*this)[i]);
+        ones += rank_table[(uchar)(*this)[i]];
         if (ones >= area_ones)
         {
             for (size_t j = 0; j < 8; j++)
@@ -106,14 +109,15 @@ void BV::build_select()
                 if (((uchar)(*this)[i]) & (1 << j)) {
                     pre_ones++;
                     if (pre_ones == area_ones) {
-                        ones = popcount(((uchar)(*this)[i]) >> (j+1));
+                        //ones = popcount(((uchar)(*this)[i]) >> (j+1));
+                        ones = rank_table[((uchar)(*this)[i]) >> (j+1)];
                         right = i << 3 + j;
                         if (right - left >= boundary_size)
                         {
-                            area_rank[idx++] = new SparseBlock((*this),left,right,area_ones);
+                            area_rank[idx++] = new SparseBlock(this,left,right,area_ones);
                         } else 
                         {
-                            area_rank[idx++] = new DenseBlock((*this),left,right,area_ones);
+                            area_rank[idx++] = new DenseBlock(this,left,right,area_ones);
                         }
                         left = right + 1;
                         break;
@@ -126,10 +130,10 @@ void BV::build_select()
         right = B - 1;
         if (right - left >= boundary_size)
         {
-            area_rank[idx++] = new SparseBlock((*this),left,right,ones);
+            area_rank[idx++] = new SparseBlock(this,left,right,ones);
         } else 
         {
-            area_rank[idx++] = new DenseBlock((*this),left,right,ones);
+            area_rank[idx++] = new DenseBlock(this,left,right,ones);
         }
     }
 
@@ -154,7 +158,7 @@ uint64 BV::rem_rank(uint64 i)
 
 uint64 BV::select(uint64 i)
 {
-    return area_rank[(i-1)/area_ones]->select(i%area_ones);
+    return area_rank[(i-1)/area_ones]->select(i%area_ones ? i%area_ones : area_ones);
 }
 
 uint64 BV::space()
@@ -175,7 +179,7 @@ uint64 BV::rank_space()
 uint64 BV::select_space()
 {
     uint64 res = sizeof(SelectBlock*) * 8 * num_area;
-    for (uint i = 0; i < num_area; i++) {
+    for (uint64 i = 0; i < num_area; i++) {
         res += area_rank[i]->space();
     }
     return res;
@@ -198,22 +202,18 @@ void BV::report_detail()
 
 
 
-
-
-
-
-
-
+//---- SparseBlock ----
 
 // [left,right]
-SparseBlock::SparseBlock(BV& const bv, uint64 left, uint64 right, uint64 o)
+SparseBlock::SparseBlock(const BV* bv, uint64 left, uint64 right, uint64 o)
     : ones(o)
 {
-    positions = new uint64[ones];
-    uint64 idx = 0;
-    for (uint pos = left; pos <= right; pos++)
+    positions = new uint64[ones+1];
+    uint64 idx = 1;
+    positions[0] = 0;
+    for (uint64 pos = left; pos <= right; pos++)
     {
-        if (((uchar)bv[pos/8]) & (1 << (pos%8))) positions[idx++] = pos;
+        if (((uchar)(*bv)[pos>>3]) & (1 << (pos%8))) positions[idx++] = pos;
     }
 }
 
@@ -234,23 +234,113 @@ uint64 SparseBlock::space()
 
 
 
-DenseBlock::DenseBlock(BV& const bv, uint64 left, uint64 right, uint64 o)
-    : ones(o), length(right-left+1), num_leaf((length+DenseBlock::chunk_size-1)/DenseBlock::chunk_size)
-{
 
+
+
+//---- DenseBlock ----
+
+DenseBlock::DenseBlock(BV* ptr, uint64 l, uint64 r, uint64 o)
+    : bv(ptr), ones(o), left(l), right(r), length(r-l+1), num_leaf((length+chunk_size-1)/chunk_size)
+{
+    num_node = 1;
+    uint64 width = 1;
+    while (width * arity < num_leaf)
+    {
+        width *= arity;
+        // number of internal nodes & shallower leaves
+        num_node += width;
+    }
+    // number of deeper leaves
+    uint64 deeper = (r*(num_leaf-width)+r-2)/(r-1);
+    num_node += deeper;
+
+    tree = new uint32[num_node+1];
+
+
+    //initialize for deeper leaves
+    for (uint64 i = 0; i < deeper; i++)
+    {
+        // now using rank implicitly for building select index
+        if (left == 0 && i == 0) 
+            tree[num_node-deeper+1] = bv->rank(left + chunk_size - 1);
+        else if (left + (i+1) * chunk_size - 1 > right)
+            tree[i+num_node-deeper+1] = bv->rank(right) - bv->rank(left + i * chunk_size - 1);
+        else 
+            tree[i+num_node-deeper+1] = bv->rank(left + (i+1) * chunk_size - 1) - bv->rank(left + i * chunk_size - 1);
+    }
+
+    //initialize for shallower leaves
+    for (uint64 i = 0; i < num_leaf - deeper; i++)
+    {
+        // now using rank implicitly for building select index
+        if (left + (i+deeper+1) * chunk_size - 1 > right)
+            tree[i+num_node-num_leaf+1] = bv->rank(right) - bv->rank(left + (i+deeper) * chunk_size - 1);
+        else 
+            tree[i+num_node-num_leaf+1] = bv->rank(left + (i+deeper+1) * chunk_size - 1) - bv->rank(left + (i+deeper) * chunk_size - 1);
+    }
+
+    //initialize for internal nodes
+    for (uint64 i = num_node-num_leaf; i != 0; i--)
+    {
+        tree[i] = 0;
+        for (uint64 j = 1; j <= arity; j++)
+        {
+            // children
+            uint64 k = arity * i - arity + 1 + j;
+            if (k > num_node) break;
+            tree[i] += tree[k];
+        }
+    }
 }
 
 DenseBlock::~DenseBlock()
 {
-    
+    delete[] tree;
 }
 
 uint64 DenseBlock::select(uint64 i)
 {
+    if (i == 0) return 0;
+    uint64 p = 1, acc = 1, width = DenseBlock::arity;
+    while (true)
+    {
+        if (DenseBlock::arity * (p-1) + 2 > num_node) {
+            if (acc + width >= num_node) // deeper leaf
+            {
+                return leaf_select(i,i-acc);
+            } 
+            else // shallower leaf 
+            {
+                uint64 x = num_node - (acc + width);
+                return leaf_select(i,x+i-(x+DenseBlock::arity-1)/DenseBlock::arity);
+            }
+        }
+        // down to children
+        for (uint64 q = DenseBlock::arity * (p-1) + 2; q < DenseBlock::arity * p + 2; q++)
+        {
+            if (i <= tree[q]) {
+                p = q;
+                break;
+            }
+            i -= tree[q];
+        }
+        acc += width;
+        width *= DenseBlock::arity;
+    }
+    return std::numeric_limits<uint64>::max();
+}
 
+uint64 DenseBlock::leaf_select(uint64 i, uint64 leaf)
+{
+    uint64 end = left + leaf * DenseBlock::chunk_size;
+    for (uint64 pos = left + (leaf-1) * DenseBlock::chunk_size; pos < end; pos++)
+    {
+        if (((uchar)(*bv)[pos>>3]) & (1 << (pos%8)))
+            if (!(--i)) return pos;
+    }
 }
 
 uint64 DenseBlock::space()
 {
-
+    return 32 * (num_node+1);
 }
