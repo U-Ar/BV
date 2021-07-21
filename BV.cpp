@@ -3,8 +3,6 @@
 // parameter initialization
 uint64 BV::block_size = 1 << 15;
 uint64 BV::chunk_size = 256;
-//uint64 BV::block_size = 1 << 14;
-//uint64 BV::chunk_size = 512;
 uint64 BV::block_bits = 64;
 uint64 BV::chunk_bits = 16;
 uint64 BV::byte_per_block = BV::block_size / 8;

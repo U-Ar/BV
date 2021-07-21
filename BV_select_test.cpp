@@ -124,7 +124,7 @@ int main() {
         assert(bsparse.select(randoms[i]) == slsp(randoms[i]));
     }
 
-    std::cout << "--test at sparse done" << std::endl << std::endl;
+    std::cout << "--test for sparse bitvector done" << std::endl << std::endl;
 
 
 
