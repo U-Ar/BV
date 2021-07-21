@@ -174,8 +174,11 @@ uint64 BV::rank_space()
 
 uint64 BV::select_space()
 {
-    //not yet implemented
-    return 0;
+    uint64 res = sizeof(SelectBlock*) * 8 * num_area;
+    for (uint i = 0; i < num_area; i++) {
+        res += area_rank[i]->space();
+    }
+    return res;
 }
 
 void BV::report_detail()
