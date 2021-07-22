@@ -235,16 +235,4 @@ int main()
     std::cout << "(sparse)avg time for sdslselect : " << sdslselect_time / 100 << " ns" << std::endl;
     
 
-
-/*
-    std::cout << std::endl << "cross validation for rank" << std::endl;
-    uint64 BV::block_size = 1 << 15;
-    uint64 BV::chunk_size = 256;
-    uint64 BV::block_bits = 64;
-    uint64 BV::chunk_bits = 16;
-    uint64 BV::byte_per_block = BV::block_size / 8;
-    uint64 BV::byte_per_chunk = BV::chunk_size / 8;
-    uint64 BV::area_ones = 1 << 9;
-    uint64 BV::boundary_size = 1 << 18;*/
-
 }
