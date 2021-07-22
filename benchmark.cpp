@@ -46,11 +46,17 @@ int main()
     BV bobj(testfile);
     auto start = std::chrono::high_resolution_clock::now();
     bobj.build_rank();
-    bobj.build_select();
     auto end = std::chrono::high_resolution_clock::now();
     uint64 mybuild_time = std::chrono::duration_cast<std::chrono::microseconds>(end-start).count();
+    std::cout << "- BV rank building time = " << mybuild_time << "us" << std::endl << std::endl;
+
+    start = std::chrono::high_resolution_clock::now();
+    bobj.build_select();
+    end = std::chrono::high_resolution_clock::now();
+    mybuild_time = std::chrono::duration_cast<std::chrono::microseconds>(end-start).count();
+    std::cout << "- BV select building time = " << mybuild_time << "us" << std::endl << std::endl;
+
     std::cout << "- BV building done" << std::endl << std::endl;
-    std::cout << "- BV building time = " << mybuild_time << "us" << std::endl << std::endl;
 
     std::cout << "-- BV rank space = " << bobj.rank_space() << " bits " 
         << (double)bobj.rank_space() / bobj.bit_size() << " per bit" << std::endl;
@@ -73,13 +79,21 @@ int main()
     start = std::chrono::high_resolution_clock::now();
     rank_support_v rs;
     util::init_support(rs,&btest);
+    end = std::chrono::high_resolution_clock::now();
+    uint64 sdslbuild_time = std::chrono::duration_cast<std::chrono::microseconds>(end-start).count();
+    std::cout << "- SDSL rank building time = " << sdslbuild_time << "us" << std::endl << std::endl;
+    
+    start = std::chrono::high_resolution_clock::now();
     select_support_mcl<1,1> sls;
     util::init_support(sls,&btest);
     end = std::chrono::high_resolution_clock::now();
-    uint64 sdslbuild_time = std::chrono::duration_cast<std::chrono::microseconds>(end-start).count();
+    sdslbuild_time = std::chrono::duration_cast<std::chrono::microseconds>(end-start).count();
+    std::cout << "- SDSL select building time = " << sdslbuild_time << "us" << std::endl << std::endl;
+    
+    
 
     std::cout << "- SDSL building done" << std::endl << std::endl;
-    std::cout << "- SDSL building time = " << sdslbuild_time << "us" << std::endl << std::endl;
+    
 
 
 

@@ -9,7 +9,7 @@ uint64 BV::byte_per_block = BV::block_size / 8;
 uint64 BV::byte_per_chunk = BV::chunk_size / 8;
 uint64 BV::area_ones = 1 << 9;
 uint64 BV::boundary_size = 1 << 18;
-uint64 DenseBlock::chunk_size = 64;
+uint64 DenseBlock::chunk_size = 256;
 uint64 DenseBlock::arity = 4;
 
 const uint64 BV::rank_table[] = {
@@ -164,11 +164,6 @@ uint64 BV::rank(uint64 i)
 uint64 BV::rem_rank(uint64 i)
 {
     uint64 res = 0;
-    /*for (uint64 j = (i/BV::chunk_size) * BV::byte_per_chunk; j < ((i+8)>>3)-1; j++)
-    {
-        res += BV::rank_table[(uchar)(*this)[j]];
-    }
-    return res + BV::rank_table[(uchar)((*this)[(i>>3)] << (7 - (i%8)))];*/
     for (uint64 j = (i/BV::chunk_size) * BV::byte_per_chunk; j < (i>>3); j++)
     {
         res += BV::rank_table[(uchar)(*this)[j]];
@@ -327,53 +322,6 @@ DenseBlock::~DenseBlock()
 uint64 DenseBlock::select(uint64 i)
 {
     if (i == 0) return 0;
-
-        // DEBUG REGION
-        /*
-        if (left > 9700000) 
-        {
-            std::cout << "tree array:" << std::endl;
-            for (int l = 1; l <= num_node; l++) std::cout << tree[l] << " "; std::cout << std::endl;
-            std::cout << "ones: " << ones << " left: " <<  left << " right: " << right << " length: " << length << " num_node: " << num_node << " num_leaf: " << num_leaf << std::endl;
-            uint64 p = 1, acc = 0, width = 1;
-            while (true)
-            {
-                std::cout << "i: " << i << " p: " << p << " acc: " << acc << " width: " << width << std::endl;
-                if (DenseBlock::arity * (p-1) + 2 > num_node) {
-                    if (acc + width >= num_node) // deeper leaf
-                    {
-                        std::cout << "leafselect (" << i << "," << p-acc << ") deeper" << std::endl;
-                        
-                        return leaf_select(i,p-acc);
-                    } 
-                    else // shallower leaf 
-                    {
-                        
-                        
-                        std::cout << "leafselect (" << i << "," << num_leaf + p - acc - width << ") shallower" << std::endl;
-                        
-                        return leaf_select(i,num_leaf + p - acc - width);
-                    }
-                }
-                // down to children
-                for (uint64 q = DenseBlock::arity * (p-1) + 2; q < DenseBlock::arity * p + 2; q++)
-                {
-                    std::cout << " q: " << q << std::endl;
-                    if (i <= tree[q]) {
-                        std::cout << " break" << std::endl;
-                        p = q;
-                        break;
-                    }
-                    i -= tree[q];
-                    if (q > num_node) return std::numeric_limits<uint64>::max();
-                }
-                acc += width;
-                width *= DenseBlock::arity;
-            }
-            return std::numeric_limits<uint64>::max();
-        }*/
-        // DEBUG REGION END
-
 
     uint64 p = 1, acc = 0, width = 1;
     while (true)
